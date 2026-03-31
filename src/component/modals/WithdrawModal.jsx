@@ -21,7 +21,7 @@ export const WithdrawModal = ({
     };
     return (
         <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex justify-center items-center p-4 animate-in fade-in">
-            <div className="bg-zinc-950 w-full rounded-3xl sm:rounded-[2rem] border border-zinc-700 p-5 sm:p-6">
+            <div className="bg-zinc-950 w-full rounded-3xl sm:rounded-4xl border border-zinc-700 p-5 sm:p-6">
                 <h3 className="font-black text-base sm:text-lg text-white mb-4 sm:mb-5">Rút vốn đầu tư</h3>
 
                 <input

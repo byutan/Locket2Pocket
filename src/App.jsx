@@ -61,7 +61,7 @@ function App() {
     formatMoney, toggleExpand, toggleHideBalance, fetchLiveGoldPrice,
     handleGalleryUpload, handleManualEntry, capturePhoto, submitTransaction, 
     handleManualTransfer, executeDeleteTransaction, requestDeleteTag, handleAddTag, 
-    handleMoveTag, openAssetModal, handleSaveAsset, handleWithdrawInvestment,
+    handleMoveTag, openAssetModal, handleSaveAsset, updateTransaction, handleWithdrawInvestment,
     saveAccount, deleteAccount, handleEditBudget, handleSaveNewBudget, handleSaveNewInvestment
   } = useFinanceApp();
 
@@ -200,6 +200,7 @@ function App() {
           formatMoney={formatMoney}
           setConfirmDialog={setConfirmDialog}
           executeDeleteTransaction={executeDeleteTransaction}
+          updateTransaction={updateTransaction}
         />
 
         {/* CÁC MODALS TẠO MỚI / CẬP NHẬT */}

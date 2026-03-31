@@ -40,7 +40,7 @@ export const BudgetModal = ({
     };
 
     return (
-        <div className="absolute inset-0 z-[60] bg-black/80 backdrop-blur-md flex justify-center items-center p-4 sm:p-6 animate-in fade-in">
+        <div className="absolute inset-0 z-60 bg-black/80 backdrop-blur-md flex justify-center items-center p-4 sm:p-6 animate-in fade-in">
             <div className="bg-zinc-950 w-full rounded-3xl sm:rounded-[2.5rem] border border-zinc-800 shadow-2xl overflow-hidden p-5 sm:p-6">
                 <div className="flex justify-between items-start mb-4 sm:mb-6">
                     <h3 className="font-black text-base sm:text-lg text-white">Sửa mức chi tiêu</h3>
@@ -67,7 +67,7 @@ export const BudgetModal = ({
                     </div>
                 </div>
 
-                <button onClick={onSubmit} className="w-full bg-zinc-100 text-black font-black py-3.5 sm:py-4 rounded-xl sm:rounded-[1.5rem] shadow-lg active:scale-95 transition-transform hover:bg-white text-sm sm:text-base">
+                <button onClick={onSubmit} className="w-full bg-zinc-100 text-black font-black py-3.5 sm:py-4 rounded-xl sm:rounded-3xl shadow-lg active:scale-95 transition-transform hover:bg-white text-sm sm:text-base">
                     Cập Nhật
                 </button>
             </div>

@@ -19,7 +19,7 @@ export const TagModal = ({
     };
     return (
         <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex justify-center items-end animate-in fade-in">
-            <div className="bg-zinc-950 w-full h-[85%] rounded-t-3xl sm:rounded-t-[2rem] flex flex-col shadow-2xl border-t border-zinc-800">
+            <div className="bg-zinc-950 w-full h-[85%] rounded-t-3xl sm:rounded-t-4xl flex flex-col shadow-2xl border-t border-zinc-800">
                 <div className="p-4 sm:p-5 border-b border-zinc-800 flex justify-between items-center">
                     <h3 className="font-black text-base sm:text-lg text-white">Quản lý Tags</h3>
                     {/* Đổi thành onClose */}

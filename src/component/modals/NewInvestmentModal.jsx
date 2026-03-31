@@ -14,7 +14,7 @@ export const NewInvestmentModal = ({
     };
 
     return (
-        <div className="absolute inset-0 z-[60] bg-black/80 backdrop-blur-md flex justify-center items-center p-4 sm:p-6 animate-in fade-in">
+        <div className="absolute inset-0 z-60 bg-black/80 backdrop-blur-md flex justify-center items-center p-4 sm:p-6 animate-in fade-in">
             <div className="bg-zinc-900 w-full rounded-3xl sm:rounded-[2.5rem] border border-zinc-800 shadow-2xl overflow-hidden p-5 sm:p-6">
                 <h3 className="font-black text-base sm:text-lg text-white mb-4 sm:mb-5">Thêm Danh mục Đầu tư</h3>
                 
@@ -28,7 +28,7 @@ export const NewInvestmentModal = ({
                 
                 <button 
                     onClick={onSubmit} 
-                    className="w-full bg-purple-600 text-white font-black py-3.5 sm:py-4 rounded-xl sm:rounded-[1.5rem] shadow-lg mb-2 text-sm sm:text-base hover:bg-purple-500 transition-colors active:scale-95"
+                    className="w-full bg-purple-600 text-white font-black py-3.5 sm:py-4 rounded-xl sm:rounded-3xl shadow-lg mb-2 text-sm sm:text-base hover:bg-purple-500 transition-colors active:scale-95"
                 >
                     Thêm
                 </button>

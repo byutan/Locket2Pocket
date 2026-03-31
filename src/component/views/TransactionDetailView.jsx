@@ -1,5 +1,5 @@
-
-import { X, Wallet, Clock, Tag as TagIcon, CreditCard, AlignLeft, Zap, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { X, Wallet, Clock, Tag as TagIcon, CreditCard, AlignLeft, Zap, Trash2, Pencil, Check } from 'lucide-react';
 
 export const TransactionDetailModal = ({
   selectedTxnDetail,
@@ -8,15 +8,72 @@ export const TransactionDetailModal = ({
   tags,
   formatMoney,
   setConfirmDialog,
-  executeDeleteTransaction
+  executeDeleteTransaction,
+  updateTransaction
 }) => {
+  // 1. Khởi tạo State mặc định lấy trực tiếp từ prop
+  const [editMode, setEditMode] = useState({
+    tag: false,
+    account: false,
+    note: false
+  });
+
+  const [draftData, setDraftData] = useState({
+    tagId: selectedTxnDetail?.tagIds?.[0] || null,
+    accountId: selectedTxnDetail?.accountId || null,
+    caption: selectedTxnDetail?.caption || ''
+  });
+
+  // 2. Kỹ thuật "Derived State" (Thay thế cho useEffect bị lỗi)
+  // Lưu lại giao dịch trước đó để so sánh.
+  const [prevTxn, setPrevTxn] = useState(selectedTxnDetail);
+
+  // Nếu người dùng bấm sang một giao dịch khác -> Reset lại toàn bộ state ngay lập tức
+  if (selectedTxnDetail !== prevTxn) {
+    setPrevTxn(selectedTxnDetail);
+    setDraftData({
+      tagId: selectedTxnDetail?.tagIds?.[0] || null,
+      accountId: selectedTxnDetail?.accountId || null,
+      caption: selectedTxnDetail?.caption || ''
+    });
+    setEditMode({ tag: false, account: false, note: false });
+  }
   if (!selectedTxnDetail) return null;
   const txn = selectedTxnDetail;
+
+  const toggleEdit = (field) => setEditMode(prev => ({ ...prev, [field]: !prev[field] }));
+
+  // Hàm xử lý lưu thay đổi
+  const handleSaveEdit = (field) => {
+    // 1. Cập nhật dữ liệu vào object giao dịch
+    const updatedTxn = { ...txn };
+    
+    if (field === 'tag') {
+      updatedTxn.tagIds = draftData.tagId ? [draftData.tagId] : []; // Chuyển lại thành mảng 1 phần tử để tương thích data cũ
+    } else if (field === 'account') {
+      updatedTxn.accountId = draftData.accountId;
+    } else if (field === 'note') {
+      updatedTxn.caption = draftData.caption;
+    }
+
+    // 2. Gọi hàm update (xử lý logic tiền bạc ở hook cha)
+    if (updateTransaction) {
+      updateTransaction(updatedTxn);
+      
+      // 3. Cập nhật lại UI đang hiển thị
+      setSelectedTxnDetail(updatedTxn);
+    }
+
+    // 4. Tắt chế độ edit
+    toggleEdit(field);
+  };
+
+
   const accName = accounts.find(a => a.id === txn.accountId)?.name || 'Không rõ';
-  const txnTags = tags.filter(t => (txn.tagIds || []).includes(t.id));
+  const currentTag = tags.find(t => t.id === draftData.tagId) || tags.find(t => (txn.tagIds || [])[0] === t.id);
 
   return (
-    <div className="absolute inset-0 z-[80] bg-black/95 backdrop-blur-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200">
+    <div className="absolute inset-0 z-80 bg-black/95 backdrop-blur-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200">
       <div className="p-4 sm:p-6 flex justify-between items-center border-b border-zinc-800/50">
         <h3 className="text-sm font-black text-zinc-400 uppercase tracking-widest">Chi tiết Giao dịch</h3>
         <button onClick={() => setSelectedTxnDetail(null)} className="p-2 bg-zinc-900 rounded-full text-zinc-400 hover:text-white transition-colors"><X size={20} /></button>
@@ -29,62 +86,144 @@ export const TransactionDetailModal = ({
           {txn.type === 'transfer' && <div className="absolute top-4 left-4 bg-blue-600 text-white text-[10px] font-black uppercase px-2 py-1 rounded-md shadow-lg border border-blue-400/50">Chuyển Tiền</div>}
         </div>
 
-        {/* AMOUNT & TIME */}
+        {/* AMOUNT & TIME (Không cho sửa tiền ở đây để tránh phức tạp hóa logic) */}
         <div className="text-center space-y-1">
           <div className={`text-4xl sm:text-5xl font-black tracking-tight ${txn.type === 'income' ? 'text-green-400' : txn.type === 'transfer' ? 'text-blue-400' : 'text-red-500'}`}>
             {txn.type === 'income' ? '+' : txn.type === 'transfer' ? '' : '-'}{formatMoney(txn.amount)}
           </div>
           <div className="flex items-center justify-center gap-1.5 text-zinc-500 font-bold text-[12px] sm:text-sm">
-            <Clock size={14} /> {txn.timestamp.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} - {txn.timestamp.toLocaleDateString('vi-VN')}
+            <Clock size={14} /> {new Date(txn.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} - {new Date(txn.timestamp).toLocaleDateString('vi-VN')}
           </div>
         </div>
 
-        {/* INFO CARD */}
-        <div className="bg-[#1C1C1E] rounded-[2rem] p-5 sm:p-6 border border-zinc-800 shadow-xl space-y-4">
-          {/* TAGS */}
-          {txnTags.length > 0 && (
-            <div className="flex items-start gap-3">
-              <TagIcon size={16} className="text-zinc-500 mt-1 shrink-0" />
-              <div className="flex flex-wrap gap-2">
-                {txnTags.map(t => <span key={t.id} className={`px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-black text-white uppercase tracking-wider ${t.color}`}>{t.name}</span>)}
+        {/* INFO CARD CÓ NÚT EDIT */}
+        <div className="bg-[#1C1C1E] rounded-4xl p-5 sm:p-6 border border-zinc-800 shadow-xl space-y-6">
+          
+          {/* 1. EDIT TAGS */}
+          <div className="space-y-3">
+            <div className="flex justify-between items-center border-b border-zinc-800/50 pb-2">
+              <div className="flex items-center gap-2 text-zinc-400">
+                <TagIcon size={14} /> <span className="text-[11px] font-bold uppercase tracking-wider">Danh mục</span>
               </div>
+              {!editMode.tag ? (
+                <button onClick={() => toggleEdit('tag')} className="flex items-center gap-1 text-[10px] bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 px-2.5 py-1 rounded-full transition-colors"><Pencil size={10} /> Sửa</button>
+              ) : (
+                <button onClick={() => handleSaveEdit('tag')} className="flex items-center gap-1 text-[10px] bg-yellow-400/20 text-yellow-400 px-2.5 py-1 rounded-full font-bold transition-colors hover:bg-yellow-400/30"><Check size={12} /> Lưu</button>
+              )}
             </div>
-          )}
-
-          {/* ACCOUNT INFO */}
-          <div className="flex items-center gap-3">
-            <CreditCard size={16} className="text-zinc-500 shrink-0" />
-            {txn.type === 'transfer' ? (
-              <div className="text-sm font-bold text-zinc-300">
-                Từ <span className="text-white">{accounts.find(a => a.id === txn.fromAccountId)?.name}</span> đến <span className="text-white">{accounts.find(a => a.id === txn.toAccountId)?.name}</span>
+            
+            {editMode.tag ? (
+              <div className="flex flex-wrap gap-2 justify-start">
+                {tags.filter(t => t.type === txn.type).map(t => (
+                  <button 
+                    key={t.id} 
+                    onClick={() => setDraftData(prev => ({ ...prev, tagId: t.id }))}
+                    // BỔ SUNG: font-black, uppercase, tracking-wider
+                    className={`px-3 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider border transition-all ${
+                      draftData.tagId === t.id 
+                        ? `${t.color} border-transparent text-white shadow-md scale-105` 
+                        : 'bg-zinc-900 border-zinc-800 text-zinc-500 hover:bg-zinc-800'
+                    }`}
+                  >
+                    {t.name}
+                  </button>
+                ))}
               </div>
             ) : (
-              <div className="text-sm font-bold text-zinc-300">Tài khoản: <span className="text-white">{accName}</span></div>
+              // BỔ SUNG flex justify-start
+              <div className="flex justify-start w-full">
+                {currentTag ? (
+                  <span className={`inline-block px-3 py-1.5 rounded-xl text-[11px] font-black text-white uppercase tracking-wider ${currentTag.color}`}>{currentTag.name}</span>
+                ) : (
+                  <span className="text-zinc-500 text-sm italic">Chưa phân loại</span>
+                )}
+              </div>
             )}
           </div>
 
-          {/* CAPTION */}
-          {txn.caption && (
-            <div className="flex items-start gap-3">
-              <AlignLeft size={16} className="text-zinc-500 mt-0.5 shrink-0" />
-              <div className="text-sm font-medium text-zinc-300 italic">"{txn.caption}"</div>
+          {/* 2. EDIT ACCOUNT INFO */}
+          <div className="space-y-3">
+            <div className="flex justify-between items-center border-b border-zinc-800/50 pb-2">
+              <div className="flex items-center gap-2 text-zinc-400">
+                <CreditCard size={14} /> <span className="text-[11px] font-bold uppercase tracking-wider">Nguồn tiền</span>
+              </div>
+              {txn.type !== 'transfer' && !editMode.account ? (
+                <button onClick={() => toggleEdit('account')} className="flex items-center gap-1 text-[10px] bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 px-2.5 py-1 rounded-full transition-colors"><Pencil size={10} /> Sửa</button>
+              ) : txn.type !== 'transfer' && (
+                <button onClick={() => handleSaveEdit('account')} className="flex items-center gap-1 text-[10px] bg-yellow-400/20 text-yellow-400 px-2.5 py-1 rounded-full font-bold transition-colors hover:bg-yellow-400/30"><Check size={12} /> Lưu</button>
+              )}
             </div>
-          )}
+
+            {txn.type === 'transfer' ? (
+               // BỔ SUNG text-left
+               <div className="text-sm font-medium text-zinc-300 text-left w-full">
+                 Từ <span className="font-bold text-white">{accounts.find(a => a.id === txn.fromAccountId)?.name}</span> đến <span className="font-bold text-white">{accounts.find(a => a.id === txn.toAccountId)?.name}</span>
+               </div>
+            ) : editMode.account ? (
+              <div className="flex flex-wrap gap-2 justify-start">
+                {accounts.map(acc => (
+                  <button 
+                    key={acc.id} 
+                    onClick={() => setDraftData(prev => ({ ...prev, accountId: acc.id }))}
+                    className={`px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all ${draftData.accountId === acc.id ? `${acc.color} border-transparent text-white shadow-md scale-105` : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}
+                  >
+                    {acc.name}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              // BỔ SUNG text-left
+              <div className="text-sm font-medium text-zinc-300 text-left w-full">
+                Tài khoản: <span className="font-bold text-white">{accName}</span>
+              </div>
+            )}
+          </div>
+
+          {/* 3. EDIT CAPTION */}
+          <div className="space-y-3">
+            <div className="flex justify-between items-center border-b border-zinc-800/50 pb-2">
+              <div className="flex items-center gap-2 text-zinc-400">
+                <AlignLeft size={14} /> <span className="text-[11px] font-bold uppercase tracking-wider">Ghi chú</span>
+              </div>
+              {!editMode.note ? (
+                <button onClick={() => toggleEdit('note')} className="flex items-center gap-1 text-[10px] bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 px-2.5 py-1 rounded-full transition-colors"><Pencil size={10} /> Sửa</button>
+              ) : (
+                <button onClick={() => handleSaveEdit('note')} className="flex items-center gap-1 text-[10px] bg-yellow-400/20 text-yellow-400 px-2.5 py-1 rounded-full font-bold transition-colors hover:bg-yellow-400/30"><Check size={12} /> Lưu</button>
+              )}
+            </div>
+
+            {editMode.note ? (
+              <input 
+                type="text" 
+                value={draftData.caption} 
+                onChange={e => setDraftData(prev => ({ ...prev, caption: e.target.value }))}
+                placeholder="Nhập ghi chú..." 
+                className="w-full bg-zinc-900 text-white rounded-xl px-4 py-3 outline-none border border-zinc-700 focus:border-yellow-400 text-sm transition-colors text-left"
+                autoFocus
+              />
+            ) : (
+              // BỔ SUNG text-left
+              <div className="text-sm font-medium text-zinc-300 italic text-left w-full">
+                {txn.caption ? `"${txn.caption}"` : <span className="text-zinc-600">Không có ghi chú</span>}
+              </div>
+            )}
+          </div>
 
           {/* TOPUP LOGS */}
           {txn.topupLogs && txn.topupLogs.length > 0 && (
-            <div className="pt-4 border-t border-zinc-800/50 space-y-2.5">
-              <div className="text-[10px] font-black text-yellow-500 uppercase flex items-center gap-1"><Zap size={12} /> Chi tiết tự động bù tiền</div>
-              {txn.topupLogs.map((log, i) => (
-                <div key={i} className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-4 py-3 flex justify-between items-center">
-                  <span className="text-[12px] sm:text-sm text-zinc-300 font-bold">Rút từ <span className="text-white">{log.fromName}</span></span>
-                  <span className="text-sm font-black text-yellow-400">{formatMoney(log.amount)}</span>
-                </div>
-              ))}
+            <div className="pt-2">
+              <div className="text-[10px] font-black text-yellow-500 uppercase flex items-center justify-start gap-1 mb-2"><Zap size={12} /> Chi tiết bù tiền tự động</div>
+              <div className="space-y-2">
+                {txn.topupLogs.map((log, i) => (
+                  <div key={i} className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-4 py-3 flex justify-between items-center">
+                    <span className="text-[12px] sm:text-sm text-zinc-300 font-bold text-left">Rút từ <span className="text-white">{log.fromName}</span></span>
+                    <span className="text-sm font-black text-yellow-400">{formatMoney(log.amount)}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
-
         {/* ACTION BUTTON */}
         <button onClick={() => setConfirmDialog({ isOpen: true, title: "Xóa?", message: "Xóa giao dịch này và khôi phục số dư?", action: () => executeDeleteTransaction(txn.id) })} className="w-full py-4 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl font-black flex items-center justify-center gap-2 active:scale-95 transition-transform hover:bg-red-500/20"><Trash2 size={18} /> Xóa Giao Dịch</button>
       </div>

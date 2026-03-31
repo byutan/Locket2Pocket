@@ -4,7 +4,7 @@ export const useFinanceApp = () => {
   // ==========================================
   // 1. KHAI BÁO TOÀN BỘ STATE
   // ==========================================
-  
+
   // --- Điều hướng & Ngày tháng ---
   const [activeTab, setActiveTab] = useState('camera');
   const [viewMonth, setViewMonth] = useState(new Date());
@@ -86,6 +86,14 @@ export const useFinanceApp = () => {
   // 2. LOGIC VÀ CÁC HÀM XỬ LÝ
   // ==========================================
 
+  const updateTransaction = (updatedTxn) => {
+    // 1. Tìm giao dịch gốc trước khi sửa
+    const oldTxn = transactions.find(t => t.id === updatedTxn.id);
+    if (!oldTxn) return;
+    setTransactions(prev => prev.map(t => t.id === updatedTxn.id ? updatedTxn : t));
+    showToastMsg("Đã cập nhật giao dịch");
+  };
+
   const formatMoney = (amount) => amount.toLocaleString('vi-VN');
 
   const showToastMsg = (message, type = 'success') => {
@@ -94,7 +102,7 @@ export const useFinanceApp = () => {
   };
 
   const toggleExpand = (tagId) => setExpandedTags(prev => ({ ...prev, [tagId]: !prev[tagId] }));
-  
+
   const toggleHideBalance = (id, e) => {
     if (e) e.stopPropagation();
     setHiddenBalances(prev => ({ ...prev, [id]: !prev[id] }));
@@ -188,7 +196,7 @@ export const useFinanceApp = () => {
   };
 
   useEffect(() => {
-    if (activeTab === 'camera' && !isDrafting && !draftImage) 
+    if (activeTab === 'camera' && !isDrafting && !draftImage)
       startCamera();
     else stopCamera();
     return () => stopCamera();
@@ -292,7 +300,7 @@ export const useFinanceApp = () => {
     const amount = parseFloat(formData.amount);
     if (!amount || amount <= 0 || !formData.fromId || !formData.toId) return showToastMsg("Dữ liệu không hợp lệ", "error");
     if (currentBalances[formData.fromId] < amount) return showToastMsg("Số dư không đủ", "error");
-    
+
     const now = new Date();
     setTransactions([{ id: `mtf_${Date.now()}`, type: 'transfer', fromAccountId: formData.fromId, toAccountId: formData.toId, amount: amount, timestamp: now, caption: `Chuyển nội bộ`, isManualTransfer: true }, ...transactions]);
     setSelectedDate(now); setActiveTab('calendar'); showToastMsg("Đã chuyển tiền");
@@ -330,12 +338,12 @@ export const useFinanceApp = () => {
   const handleAddTag = (name, type) => {
     if (!name.trim()) {
       showToastMsg("Nhập tên", "error");
-      return false; 
+      return false;
     }
     const color = type === 'expense' ? 'bg-red-500' : type === 'income' ? 'bg-green-500' : 'bg-purple-500';
     setTags([...tags, { id: Date.now().toString(), name: name, type: type, color }]);
     showToastMsg("Đã thêm", "success");
-    return true; 
+    return true;
   };
 
   const swapTags = (id1, id2) => {
@@ -494,7 +502,7 @@ export const useFinanceApp = () => {
     // Functions
     formatMoney, showToastMsg, toggleExpand, toggleHideBalance, fetchLiveGoldPrice,
     handleGalleryUpload, handleManualEntry, startCamera, stopCamera, capturePhoto,
-    submitTransaction, handleManualTransfer, executeDeleteTransaction, requestDeleteTag,
+    submitTransaction, handleManualTransfer, executeDeleteTransaction, updateTransaction, requestDeleteTag,
     handleAddTag, handleMoveTag, swapTags, openAssetModal, handleSaveAsset, handleWithdrawInvestment,
     saveAccount, deleteAccount, handleEditBudget, handleSaveNewBudget, handleSaveNewInvestment
   };

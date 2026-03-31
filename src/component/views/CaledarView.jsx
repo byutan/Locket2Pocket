@@ -60,31 +60,67 @@ export const CalendarView = ({
           </div>
         </div>
 
-        <div className="animate-in slide-in-from-bottom-2">
+        <div className="animate-in slide-in-from-bottom-2 pb-10">
           <h3 className="text-base sm:text-lg font-black mb-3 sm:mb-4 flex items-center gap-2">Giao dịch <span className="text-yellow-400 text-xs sm:text-sm">({selectedDate.getDate()}/{selectedDate.getMonth() + 1})</span></h3>
           <div className="grid grid-cols-2 gap-2 sm:gap-3">
             {selectedDayData.list.map(txn => (
               <div key={txn.id} onClick={() => setSelectedTxnDetail(txn)} className="aspect-square bg-zinc-900 rounded-2xl sm:rounded-[1.8rem] overflow-hidden border border-zinc-800 relative shadow-lg cursor-pointer group hover:border-zinc-600 transition-colors">
                 {txn.imageUrl ? <img src={txn.imageUrl} className="w-full h-full object-cover opacity-70 group-hover:scale-105 transition-transform duration-500" /> : <div className="w-full h-full flex items-center justify-center opacity-20"><Wallet size={40} /></div>}
-                <div className="absolute inset-0 p-3 sm:p-4 flex flex-col justify-between bg-gradient-to-t from-black via-black/40 to-transparent">
-                  <div className="flex justify-between items-start">
-                    <div className="flex flex-col gap-1 items-start max-w-[80%]">
-                      {txn.type === 'transfer' && <span className="text-[7px] sm:text-[8px] font-black px-1.5 py-0.5 rounded bg-blue-600 text-white uppercase border border-blue-400/50">Chuyển Tiền</span>}
+                
+                {/* Lớp phủ gradient và chứa nội dung */}
+                <div className="absolute inset-0 p-3 sm:p-4 flex flex-col bg-linear-to-t from-black via-black/30 to-transparent">
+                  
+                  {/* Phần trên cùng: Chứa Ghi chú (trái) và Thời gian (phải) */}
+                  <div className="flex justify-between items-start mb-2">
+                    
+                    {/* Góc trái trên: Ghi chú và các nhãn (Zap bù, Chuyển tiền) */}
+                    <div className="flex flex-col items-start gap-1 max-w-[65%]">
+                      {/* Ghi chú */}
+                      <p className="text-[10px] sm:text-[11px] text-zinc-400 font-semibold bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-md shadow-sm">
+                        {txn.caption || 'Giao dịch'}
+                      </p>
+                      
+                      {/* Nhãn chuyển tiền */}
+                      {txn.type === 'transfer' && (
+                        <span className="text-[7px] sm:text-[8px] font-black px-1.5 py-0.5 rounded bg-blue-600 text-white uppercase border border-blue-400/50 shadow-sm backdrop-blur-sm truncate max-w-full">
+                          Chuyển Tiền
+                        </span>
+                      )}
+                      
+                      {/* Nhãn bù tiền */}
                       {txn.topupLogs && txn.topupLogs.length > 0 && (
-                        <span className="text-[8px] sm:text-[9px] font-bold bg-zinc-900/80 text-yellow-400 px-1.5 sm:px-2 py-0.5 rounded-md border border-yellow-500/30 shadow-sm leading-tight inline-flex items-center gap-0.5 backdrop-blur-sm mb-1 truncate max-w-full">
+                        <span className="text-[8px] sm:text-[9px] font-bold bg-zinc-900/80 text-yellow-400 px-1.5 sm:px-2 py-0.5 rounded-md border border-yellow-500/30 shadow-sm inline-flex items-center gap-0.5 backdrop-blur-sm truncate max-w-full">
                           <Zap size={8} className="shrink-0" /> Bù {formatMoney(txn.topupLogs.reduce((s, t) => s + t.amount, 0))}
                         </span>
                       )}
                     </div>
+
+                    {/* Góc phải trên: Thời gian */}
+                    <div className="max-w-[35%] flex justify-end">
+                      <p className="text-[10px] sm:text-[11px] text-zinc-400 font-semibold bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-md shadow-sm">
+                        {txn.timestamp.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+
                   </div>
-                  <div>
-                    <span className={`text-sm sm:text-lg font-black tracking-tight drop-shadow-md ${txn.type === 'income' ? 'text-green-400' : txn.type === 'transfer' ? 'text-blue-400' : 'text-red-400'}`}>{formatMoney(txn.amount)}</span>
-                    <p className="text-[9px] sm:text-[10px] text-zinc-300 font-medium truncate mt-0.5 sm:mt-1 bg-black/40 px-2 py-0.5 rounded-full inline-block backdrop-blur-sm">{txn.caption || 'Giao dịch'}</p>
+                  
+                  {/* Phần dưới cùng: Số tiền (căn giữa) */}
+                  <div className="flex-1 flex flex-col justify-end items-center pb-1">
+                    <span className={`text-xl sm:text-2xl font-black tracking-tight drop-shadow-xl text-center truncate w-full ${txn.type === 'income' ? 'text-green-400' : txn.type === 'transfer' ? 'text-blue-400' : 'text-red-400'}`}>
+                      {formatMoney(txn.amount)}
+                    </span>
                   </div>
+
                 </div>
               </div>
             ))}
-            {selectedDayData.list.length === 0 && <div className="col-span-2 py-10 sm:py-12 text-center text-zinc-600 text-xs italic border-2 border-dashed border-zinc-900 rounded-2xl sm:rounded-3xl">Trống trơn...</div>}
+            
+            {/* Hiển thị khi không có giao dịch */}
+            {selectedDayData.list.length === 0 && (
+              <div className="col-span-2 py-10 sm:py-12 text-center text-zinc-600 text-xs italic border-2 border-dashed border-zinc-900 rounded-2xl sm:rounded-3xl">
+                Trống trơn...
+              </div>
+            )}
           </div>
         </div>
       </div>

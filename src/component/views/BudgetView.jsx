@@ -65,7 +65,7 @@ export const BudgetView = ({
                     const isExpanded = !!expandedTags[tag.id];
 
                     return (
-                        <div key={tag.id} className="bg-gradient-to-b from-zinc-900 to-[#121212] rounded-2xl sm:rounded-[1.8rem] border border-zinc-800 shadow-xl relative overflow-hidden transition-all duration-300">
+                        <div key={tag.id} className="bg-linear-to-b from-zinc-900 to-[#121212] rounded-2xl sm:rounded-[1.8rem] border border-zinc-800 shadow-xl relative overflow-hidden transition-all duration-300">
                             {isExceeded && totalValue > 0 && <div className="absolute top-0 right-0 bg-red-500/20 text-red-500 text-[9px] sm:text-[10px] font-black uppercase px-2.5 py-1 rounded-bl-lg sm:rounded-bl-xl border-b border-l border-red-500/30 flex items-center gap-1 z-10"><AlertTriangle size={10} /> Vượt Ngân Sách</div>}
 
                             <div onClick={() => toggleExpand(tag.id)} className="p-4 sm:p-5 cursor-pointer active:bg-zinc-800/30 transition-colors">
@@ -103,7 +103,7 @@ export const BudgetView = ({
                                         </div>
                                         <div className="flex flex-col bg-zinc-800/50 rounded-md sm:rounded-lg overflow-hidden border border-zinc-700">
                                             <button onClick={(e) => { e.stopPropagation(); handleMoveTag(tag.id, 'up'); }} disabled={idx === 0} className={`p-1 flex items-center justify-center transition-colors ${idx === 0 ? 'text-zinc-600 cursor-not-allowed' : 'text-zinc-400 hover:text-white hover:bg-zinc-700'}`}><ChevronUp size={12} className="sm:w-4 sm:h-4" /></button>
-                                            <div className="h-[1px] w-full bg-zinc-700"></div>
+                                            <div className="h-px w-full bg-zinc-700"></div>
                                             <button onClick={(e) => { e.stopPropagation(); handleMoveTag(tag.id, 'down'); }} disabled={idx === expenseTags.length - 1} className={`p-1 flex items-center justify-center transition-colors ${idx === expenseTags.length - 1 ? 'text-zinc-600 cursor-not-allowed' : 'text-zinc-400 hover:text-white hover:bg-zinc-700'}`}><ChevronDown size={12} className="sm:w-4 sm:h-4" /></button>
                                         </div>
                                     </div>
